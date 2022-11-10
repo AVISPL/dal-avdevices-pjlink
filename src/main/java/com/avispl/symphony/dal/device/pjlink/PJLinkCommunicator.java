@@ -642,33 +642,35 @@ public class PJLinkCommunicator extends SocketCommunicator implements Monitorabl
             if (logger.isDebugEnabled()) {
                 logger.debug(String.format("Command %s is not supported, skipping", commandName));
             }
-            return UNDEFINED_COMMAND;
+            return UNDEFINED_COMMAND_TEXT;
         }
-        String responseValue = retrieveResponseValue(sendCommandWithRetry(command.getValue(), command.getResponseTemplate()));
+        String responseValue = retrieveResponseValue(sendCommandWithRetry(command.getValue(), command.getResponseTemplate())).trim();
 
-        if (responseValue.equals(UNDEFINED_COMMAND)) {
+        if (UNDEFINED_COMMAND.equals(responseValue)) {
             if (!unsupportedCommands.contains(commandName)) {
                 unsupportedCommands.add(commandName);
             }
             if (logger.isWarnEnabled()) {
                 logger.warn("Undefined Command: " + new String(command.getValue()));
             }
-            return UNDEFINED_COMMAND;
-        } else if(responseValue.equals(OUT_OF_PARAMETER)) {
+            return UNDEFINED_COMMAND_TEXT;
+        } else if(OUT_OF_PARAMETER.equals(responseValue)) {
             if (logger.isWarnEnabled()) {
                 logger.warn("Out of parameter: " + new String(command.getValue()));
             }
-            return OUT_OF_PARAMETER;
-        } else if(responseValue.equals(UNAVAILABLE_TIME)) {
+            return OUT_OF_PARAMETER_TEXT;
+        } else if(UNAVAILABLE_TIME.equals(responseValue)) {
             if (logger.isWarnEnabled()) {
                 logger.warn("Unavailable time: " + new String(command.getValue()));
             }
-            return UNAVAILABLE_TIME;
-        } else if(responseValue.equals(DEVICE_FAILURE)) {
+            return UNAVAILABLE_TIME_TEXT;
+        } else if(DEVICE_FAILURE.equals(responseValue)) {
             if (logger.isWarnEnabled()) {
                 logger.warn("Projector/Display failure: " + new String(command.getValue()));
             }
-            return DEVICE_FAILURE;
+            return DEVICE_FAILURE_TEXT;
+        } else if("-".equals(responseValue)) {
+            return N_A;
         }
         return responseValue;
     }
@@ -722,9 +724,9 @@ public class PJLinkCommunicator extends SocketCommunicator implements Monitorabl
      * */
     private void retrieveClassData(Map<String, String> statistics) throws Exception {
         String classResponse = retrieveResponseValue(sendCommandWithRetry(PJLinkCommand.CLSS_STAT.getValue(), PJLinkCommand.CLSS_STAT.getResponseTemplate()));
-        if (classResponse.equals("1")) {
+        if ("1".equals(classResponse)) {
             pjLinkClass = CLASS_1;
-        } else if (classResponse.equals("2")){
+        } else if ("2".equals(classResponse)){
             pjLinkClass = CLASS_2;
         }
         statistics.put(PJLINK_CLASS_PROPERTY, classResponse);
@@ -1044,7 +1046,7 @@ public class PJLinkCommunicator extends SocketCommunicator implements Monitorabl
      * @return boolean, true if property is valid, false if not valid
      * */
     private boolean validateMonitorableProperty(String commandResponseValue) {
-        if("ERR1".equals(commandResponseValue)) {
+        if(UNDEFINED_COMMAND.equals(commandResponseValue)) {
             return false;
         }
         return true;
@@ -1059,16 +1061,16 @@ public class PJLinkCommunicator extends SocketCommunicator implements Monitorabl
      * */
     private void validateControllableProperty(String commandResponseValue, String name, String value, boolean updateValue) {
         switch(retrieveResponseValue(commandResponseValue)) {
-            case "ERR1":
+            case UNDEFINED_COMMAND:
                 if (!unsupportedCommands.contains(name)) {
                     unsupportedCommands.add(name);
                 }
                 throw new IllegalArgumentException("Unsupported control command: " + name);
-            case "ERR2":
+            case OUT_OF_PARAMETER:
                 throw new IllegalArgumentException("Missing control command parameter: " + name);
-            case "ERR3":
+            case UNAVAILABLE_TIME:
                 throw new IllegalStateException("Unable to send control command due to the device state");
-            case "ERR4":
+            case DEVICE_FAILURE:
                 throw new RuntimeException("Unable to send control command due to the general device failure");
             default:
                 if (logger.isDebugEnabled()) {
@@ -1084,8 +1086,8 @@ public class PJLinkCommunicator extends SocketCommunicator implements Monitorabl
             if (POWER_PROPERTY.equals(name) && "0".equals(value)) {
                 localStatistics.getControllableProperties().removeIf(advancedControllableProperty -> {
                     String propertyName = advancedControllableProperty.getName();
-                    return propertyName.equals(INPUT_PROPERTY) || propertyName.equals(AUDIOMUTE_PROPERTY) ||
-                            propertyName.equals(VIDEOMUTE_PROPERTY) || propertyName.equals(FREEZE_PROPERTY);
+                    return INPUT_PROPERTY.equals(propertyName) || AUDIOMUTE_PROPERTY.equals(propertyName) ||
+                            VIDEOMUTE_PROPERTY.equals(propertyName) || FREEZE_PROPERTY.equals(propertyName);
                 });
             }
         }
