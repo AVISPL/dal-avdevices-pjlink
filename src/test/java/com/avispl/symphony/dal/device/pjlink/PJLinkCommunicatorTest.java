@@ -12,6 +12,7 @@ import com.avispl.symphony.dal.communicator.SocketCommunicator;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Tag;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
@@ -34,6 +35,7 @@ import static org.powermock.api.mockito.PowerMockito.*;
  *
  * @author Maksym.Rossiytsev/AVISPL Team
  * */
+@Tag("Unit")
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({SocketCommunicator.class})
 public class PJLinkCommunicatorTest {

@@ -775,7 +775,9 @@ public class PJLinkCommunicator extends SocketCommunicator implements Monitorabl
     private void populatePowerData(Map<String, String> statistics, List<AdvancedControllableProperty> controls) throws Exception {
         String powrResponse = sendCommandAndRetrieveValue(PJLinkCommand.POWR_STAT);
         statistics.put(POWER_PROPERTY, powrResponse);
-        controls.add(createSwitch(POWER_PROPERTY, Objects.equals("1", powrResponse) ? 1 : 0));
+        if (isNumeric(powrResponse)) {
+            controls.add(createSwitch(POWER_PROPERTY, Integer.parseInt(powrResponse)));
+        }
     }
 
     /**
@@ -789,8 +791,8 @@ public class PJLinkCommunicator extends SocketCommunicator implements Monitorabl
         String freezeResponse = sendCommandAndRetrieveValue(PJLinkCommand.FREZ_STAT);
         if (!StringUtils.isNullOrEmpty(freezeResponse) && validateMonitorableProperty(freezeResponse)) {
             statistics.put(FREEZE_PROPERTY, "1".equals(freezeResponse) ? STATUS_ON : STATUS_OFF);
-            if ("1".equals(statistics.get(POWER_PROPERTY))) {
-                controls.add(createSwitch(FREEZE_PROPERTY, Objects.equals("1", freezeResponse) ? 1 : 0));
+            if ("1".equals(statistics.get(POWER_PROPERTY)) && isNumeric(freezeResponse)) {
+                controls.add(createSwitch(FREEZE_PROPERTY, Integer.parseInt(freezeResponse)));
             }
         }
     }
@@ -948,7 +950,7 @@ public class PJLinkCommunicator extends SocketCommunicator implements Monitorabl
      * */
     private void createAVMuteControl(Map<String, String> statistics, List<AdvancedControllableProperty> controls, String propertyName, String value) {
         statistics.put(propertyName, "1".equals(value) ? STATUS_ON : STATUS_OFF);
-        if ("1".equals(statistics.get(POWER_PROPERTY))) {
+        if ("1".equals(statistics.get(POWER_PROPERTY)) && isNumeric(value)) {
             controls.add(createSwitch(propertyName, Integer.parseInt(value)));
         }
     }
@@ -1129,5 +1131,23 @@ public class PJLinkCommunicator extends SocketCommunicator implements Monitorabl
      */
     private boolean isValidControlCoolDown() {
         return (System.currentTimeMillis() - latestControlTimestamp) < CONTROL_OPERATION_COOLDOWN_MS;
+    }
+
+    /**
+     * Checks if the sting contains numeric values
+     *
+     * @param string to check
+     * @return boolean value, true if numeric, false otherwise
+     * */
+    public static boolean isNumeric(String string) {
+        if (string == null) {
+            return false;
+        }
+        try {
+            Double.parseDouble(string);
+        } catch (NumberFormatException nfe) {
+            return false;
+        }
+        return true;
     }
 }
