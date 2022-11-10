@@ -25,10 +25,6 @@ import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.locks.ReentrantLock;
 
-import static com.avispl.symphony.dal.device.pjlink.PJLinkCommand.*;
-import static com.avispl.symphony.dal.device.pjlink.PJLinkConstants.*;
-import static com.avispl.symphony.dal.device.pjlink.PJLinkConstants.PJLinkClass.CLASS_1;
-import static com.avispl.symphony.dal.device.pjlink.PJLinkConstants.PJLinkClass.CLASS_2;
 import static com.avispl.symphony.dal.util.ControllablePropertyFactory.*;
 import static com.avispl.symphony.dal.util.PropertyUtils.normalizeUptime;
 
@@ -95,7 +91,7 @@ public class PJLinkCommunicator extends SocketCommunicator implements Monitorabl
                         if (logger.isDebugEnabled()) {
                             logger.debug("Sending session refresh command.");
                         }
-                        sendCommandWithRetry(CLSS_STAT.getValue(), CLSS_STAT.getResponseTemplate());
+                        sendCommandWithRetry(PJLinkCommand.CLSS_STAT.getValue(), PJLinkCommand.CLSS_STAT.getResponseTemplate());
                     } catch (Exception e) {
                         logger.error("Unable to refresh the TCP session.", e);
                     } finally {
@@ -299,7 +295,7 @@ public class PJLinkCommunicator extends SocketCommunicator implements Monitorabl
             logger.debug("Internal init is called.");
         }
         setCommandSuccessList(Collections.singletonList("="));
-        setCommandErrorList(Arrays.asList(UNDEFINED_COMMAND, OUT_OF_PARAMETER, UNAVAILABLE_TIME, DEVICE_FAILURE, PJLINK_ERRA));
+        setCommandErrorList(Arrays.asList(PJLinkConstants.UNDEFINED_COMMAND, PJLinkConstants.OUT_OF_PARAMETER, PJLinkConstants.UNAVAILABLE_TIME, PJLinkConstants.DEVICE_FAILURE, PJLinkConstants.PJLINK_ERRA));
 
         adapterInitializationTimestamp = System.currentTimeMillis();
         try {
@@ -347,14 +343,14 @@ public class PJLinkCommunicator extends SocketCommunicator implements Monitorabl
             updateLatestControlTimestamp();
             byte[] command;
             switch (propertyName) {
-                case POWER_PROPERTY:
-                    command = POWR_CMD.getValue().clone();
+                case PJLinkConstants.POWER_PROPERTY:
+                    command = PJLinkCommand.POWR_CMD.getValue().clone();
                     command[7] = (byte) ("1".equals(propertyValue) ? 0x31 : 0x30);
                     commandResponse = sendCommandWithRetry(command, "POWR");
                     validateControllableProperty(commandResponse, propertyName, propertyValue, true);
                     break;
-                case INPUT_PROPERTY:
-                    command = INPT_CMD.getValue().clone();
+                case PJLinkConstants.INPUT_PROPERTY:
+                    command = PJLinkCommand.INPT_CMD.getValue().clone();
                     String inputCode = inputOptions.get(propertyValue);
                     if (StringUtils.isNullOrEmpty(inputCode)) {
                         throw new IllegalStateException(String.format("Unable to switch Input to %s mode: no input code available", inputOptions));
@@ -365,38 +361,38 @@ public class PJLinkCommunicator extends SocketCommunicator implements Monitorabl
                     commandResponse = sendCommandWithRetry(command, "INPT");
                     validateControllableProperty(commandResponse, propertyName, propertyValue, true);
                     break;
-                case VIDEOMUTE_PROPERTY:
-                    command = VIDEO_MUTE_CMD.getValue().clone();
+                case PJLinkConstants.VIDEOMUTE_PROPERTY:
+                    command = PJLinkCommand.VIDEO_MUTE_CMD.getValue().clone();
                     command[8] = (byte) ("1".equals(propertyValue) ? 0x31 : 0x30);
                     commandResponse = sendCommandWithRetry(command, "AVMT");
                     validateControllableProperty(commandResponse, propertyName, propertyValue, true);
                     break;
-                case AUDIOMUTE_PROPERTY:
-                    command = AUDIO_MUTE_CMD.getValue().clone();
+                case PJLinkConstants.AUDIOMUTE_PROPERTY:
+                    command = PJLinkCommand.AUDIO_MUTE_CMD.getValue().clone();
                     command[8] = (byte) ("1".equals(propertyValue) ? 0x31 : 0x30);
                     commandResponse = sendCommandWithRetry(command, "AVMT");
                     validateControllableProperty(commandResponse, propertyName, propertyValue, true);
                     break;
-                case MICROPHONE_VOLUME_UP:
-                    command = MVOL_CMD.getValue().clone();
+                case PJLinkConstants.MICROPHONE_VOLUME_UP:
+                    command = PJLinkCommand.MVOL_CMD.getValue().clone();
                     command[7] = 0x31;
                     commandResponse = sendCommandWithRetry(command, "MVOL");
                     validateControllableProperty(commandResponse, propertyName, propertyValue, false);
                     break;
-                case MICROPHONE_VOLUME_DOWN:
-                    command = MVOL_CMD.getValue().clone();
+                case PJLinkConstants.MICROPHONE_VOLUME_DOWN:
+                    command = PJLinkCommand.MVOL_CMD.getValue().clone();
                     command[7] = 0x30;
                     commandResponse = sendCommandWithRetry(command, "MVOL");
                     validateControllableProperty(commandResponse, propertyName, propertyValue, false);
                     break;
-                case SPEAKER_VOLUME_UP:
-                    command = SVOL_CMD.getValue().clone();
+                case PJLinkConstants.SPEAKER_VOLUME_UP:
+                    command = PJLinkCommand.SVOL_CMD.getValue().clone();
                     command[7] = 0x31;
                     commandResponse = sendCommandWithRetry(command, "SVOL");
                     validateControllableProperty(commandResponse, propertyName, propertyValue, false);
                     break;
-                case SPEAKER_VOLUME_DOWN:
-                    command = SVOL_CMD.getValue().clone();
+                case PJLinkConstants.SPEAKER_VOLUME_DOWN:
+                    command = PJLinkCommand.SVOL_CMD.getValue().clone();
                     command[7] = 0x30;
                     commandResponse = sendCommandWithRetry(command, "SVOL");
                     validateControllableProperty(commandResponse, propertyName, propertyValue, false);
@@ -443,7 +439,7 @@ public class PJLinkCommunicator extends SocketCommunicator implements Monitorabl
         try {
             retrieveClassData(statistics);
             initialControlsValidation();
-            if (pjLinkClass == CLASS_1 || pjLinkClass == CLASS_2) {
+            if (pjLinkClass == PJLinkConstants.PJLinkClass.CLASS_1 || pjLinkClass == PJLinkConstants.PJLinkClass.CLASS_2) {
                 String avmtResponse = sendCommandAndRetrieveValue(PJLinkCommand.AVMT_STAT);
                 String erstResponse = sendCommandAndRetrieveValue(PJLinkCommand.ERST_STAT);
                 String lampResponse = sendCommandAndRetrieveValue(PJLinkCommand.LAMP_STAT);
@@ -463,15 +459,15 @@ public class PJLinkCommunicator extends SocketCommunicator implements Monitorabl
                     populateLampData(statistics, lampResponse);
                 }
 
-                addStatisticsWithValidation(statistics, nameResponse, DEVICE_NAME_PROPERTY, nameResponse, true);
-                addStatisticsWithValidation(statistics, inf1Response, MANUFACTURER_DETAILS_PROPERTY, inf1Response, true);
-                addStatisticsWithValidation(statistics, inf2Response, PRODUCT_DETAILS_PROPERTY, inf2Response, true);
-                addStatisticsWithValidation(statistics, infoResponse, DEVICE_DETAILS_PROPERTY, infoResponse, true);
+                addStatisticsWithValidation(statistics, nameResponse, PJLinkConstants.DEVICE_NAME_PROPERTY, nameResponse, true);
+                addStatisticsWithValidation(statistics, inf1Response, PJLinkConstants.MANUFACTURER_DETAILS_PROPERTY, inf1Response, true);
+                addStatisticsWithValidation(statistics, inf2Response, PJLinkConstants.PRODUCT_DETAILS_PROPERTY, inf2Response, true);
+                addStatisticsWithValidation(statistics, infoResponse, PJLinkConstants.DEVICE_DETAILS_PROPERTY, infoResponse, true);
                 if (logger.isDebugEnabled()) {
                     logger.debug("Finished collecting Class 1 PJLink statistics");
                 }
             }
-            if (pjLinkClass == CLASS_2) {
+            if (pjLinkClass == PJLinkConstants.PJLinkClass.CLASS_2) {
                 String snumResponse = sendCommandAndRetrieveValue(PJLinkCommand.SNUM_STAT);
                 String sverResponse = sendCommandAndRetrieveValue(PJLinkCommand.SVER_STAT);
                 String filtResponse = sendCommandAndRetrieveValue(PJLinkCommand.FILT_STAT);
@@ -484,20 +480,20 @@ public class PJLinkCommunicator extends SocketCommunicator implements Monitorabl
                 populateFreezeData(statistics, advancedControllableProperties);
                 populateVolumeControls(statistics, advancedControllableProperties);
 
-                addStatisticsWithValidation(statistics, snumResponse, SERIAL_NUMBER_PROPERTY, snumResponse, true);
-                addStatisticsWithValidation(statistics, sverResponse, SOFTWARE_VERSION_PROPERTY, sverResponse, true);
-                addStatisticsWithValidation(statistics, rresResponse, RECOMMENDED_RESOLUTION_PROPERTY, rresResponse, true);
-                addStatisticsWithValidation(statistics, iresResponse, INPUT_RESOLUTION_PROPERTY, iresResponse, true);
-                addStatisticsWithValidation(statistics, filtResponse, FILTER_USAGE_PROPERTY, filtResponse, false);
-                addStatisticsWithValidation(statistics, rfilResponse, FILTER_REPLACEMENT_PROPERTY, rfilResponse, false);
-                addStatisticsWithValidation(statistics, rlmpResponse, LAMP_REPLACEMENT_PROPERTY, rlmpResponse, false);
+                addStatisticsWithValidation(statistics, snumResponse, PJLinkConstants.SERIAL_NUMBER_PROPERTY, snumResponse, true);
+                addStatisticsWithValidation(statistics, sverResponse, PJLinkConstants.SOFTWARE_VERSION_PROPERTY, sverResponse, true);
+                addStatisticsWithValidation(statistics, rresResponse, PJLinkConstants.RECOMMENDED_RESOLUTION_PROPERTY, rresResponse, true);
+                addStatisticsWithValidation(statistics, iresResponse, PJLinkConstants.INPUT_RESOLUTION_PROPERTY, iresResponse, true);
+                addStatisticsWithValidation(statistics, filtResponse, PJLinkConstants.FILTER_USAGE_PROPERTY, filtResponse, false);
+                addStatisticsWithValidation(statistics, rfilResponse, PJLinkConstants.FILTER_REPLACEMENT_PROPERTY, rfilResponse, false);
+                addStatisticsWithValidation(statistics, rlmpResponse, PJLinkConstants.LAMP_REPLACEMENT_PROPERTY, rlmpResponse, false);
                 if (logger.isDebugEnabled()) {
                     logger.debug("Finished collecting Class 2 PJLink statistics");
                 }
             }
-            statistics.put(METADATA_ADAPTER_VERSION_PROPERTY, adapterProperties.getProperty("adapter.version"));
-            statistics.put(METADATA_ADAPTER_BUILD_DATE_PROPERTY, adapterProperties.getProperty("adapter.build.date"));
-            statistics.put(METADATA_ADAPTER_UPTIME_PROPERTY, normalizeUptime(String.valueOf((System.currentTimeMillis() - adapterInitializationTimestamp) / 1000)));
+            statistics.put(PJLinkConstants.METADATA_ADAPTER_VERSION_PROPERTY, adapterProperties.getProperty("adapter.version"));
+            statistics.put(PJLinkConstants.METADATA_ADAPTER_BUILD_DATE_PROPERTY, adapterProperties.getProperty("adapter.build.date"));
+            statistics.put(PJLinkConstants.METADATA_ADAPTER_UPTIME_PROPERTY, normalizeUptime(String.valueOf((System.currentTimeMillis() - adapterInitializationTimestamp) / 1000)));
 
             extendedStatistics.setStatistics(statistics);
             extendedStatistics.setControllableProperties(advancedControllableProperties);
@@ -579,7 +575,7 @@ public class PJLinkCommunicator extends SocketCommunicator implements Monitorabl
         if ((getConnectionStatus().getConnectionState() == ConnectionState.Disconnected ||
                 getConnectionStatus().getConnectionState() == ConnectionState.Unknown) && data.length > 0) {
             String response =  sendCommandWithRetry(PJLinkCommand.BLANK.getValue(), "PJLINK");
-            if (response.startsWith(PJLinkConstants.PJLINK_1) || response.startsWith(PJLINK_ERRA)) {
+            if (response.startsWith(PJLinkConstants.PJLINK_1) || response.startsWith(PJLinkConstants.PJLINK_ERRA)) {
                 if (response.startsWith(PJLinkConstants.PJLINK_1)) {
                     authenticationSuffix = response.split("1")[1].trim();
                 }
@@ -601,8 +597,8 @@ public class PJLinkCommunicator extends SocketCommunicator implements Monitorabl
      * */
     private String sendCommandWithRetry(byte[] command, String expectedResponseTemplate) throws Exception {
         String response = sendCommand(command);
-        if (response.equals(UNDEFINED_COMMAND) || response.equals(OUT_OF_PARAMETER)
-                || response.equals(UNAVAILABLE_TIME) || response.equals(DEVICE_FAILURE) || response.contains(expectedResponseTemplate)) {
+        if (response.equals(PJLinkConstants.UNDEFINED_COMMAND) || response.equals(PJLinkConstants.OUT_OF_PARAMETER)
+                || response.equals(PJLinkConstants.UNAVAILABLE_TIME) || response.equals(PJLinkConstants.DEVICE_FAILURE) || response.contains(expectedResponseTemplate)) {
             return response;
         }
 
@@ -612,8 +608,8 @@ public class PJLinkCommunicator extends SocketCommunicator implements Monitorabl
                 logger.debug(String.format("Retrieving value for command %s. Expected response template %s but received %s", new String(command), expectedResponseTemplate, response));
             }
             retryAttempts++;
-            if (response.equals(UNDEFINED_COMMAND) || response.equals(OUT_OF_PARAMETER)
-                    || response.equals(UNAVAILABLE_TIME) || response.equals(DEVICE_FAILURE) || response.contains(expectedResponseTemplate)) {
+            if (response.equals(PJLinkConstants.UNDEFINED_COMMAND) || response.equals(PJLinkConstants.OUT_OF_PARAMETER)
+                    || response.equals(PJLinkConstants.UNAVAILABLE_TIME) || response.equals(PJLinkConstants.DEVICE_FAILURE) || response.contains(expectedResponseTemplate)) {
                 return response;
             }
             TimeUnit.MILLISECONDS.sleep(COMMAND_RETRY_INTERVAL_MS);
@@ -622,7 +618,7 @@ public class PJLinkCommunicator extends SocketCommunicator implements Monitorabl
             response = sendCommand(PJLinkCommand.BLANK.getValue());
         }
 
-        return N_A;
+        return PJLinkConstants.N_A;
     }
 
     /**
@@ -638,35 +634,35 @@ public class PJLinkCommunicator extends SocketCommunicator implements Monitorabl
             if (logger.isDebugEnabled()) {
                 logger.debug(String.format("Command %s is not supported, skipping", commandName));
             }
-            return UNDEFINED_COMMAND;
+            return PJLinkConstants.UNDEFINED_COMMAND;
         }
         String responseValue = retrieveResponseValue(sendCommandWithRetry(command.getValue(), command.getResponseTemplate())).trim();
 
-        if (UNDEFINED_COMMAND.equals(responseValue)) {
+        if (PJLinkConstants.UNDEFINED_COMMAND.equals(responseValue)) {
             if (!unsupportedCommands.contains(commandName)) {
                 unsupportedCommands.add(commandName);
             }
             if (logger.isWarnEnabled()) {
                 logger.warn("Undefined Command: " + new String(command.getValue()));
             }
-            return UNDEFINED_COMMAND;
-        } else if(OUT_OF_PARAMETER.equals(responseValue)) {
+            return PJLinkConstants.UNDEFINED_COMMAND;
+        } else if(PJLinkConstants.OUT_OF_PARAMETER.equals(responseValue)) {
             if (logger.isWarnEnabled()) {
                 logger.warn("Out of parameter: " + new String(command.getValue()));
             }
-            return OUT_OF_PARAMETER_TEXT;
-        } else if(UNAVAILABLE_TIME.equals(responseValue)) {
+            return PJLinkConstants.OUT_OF_PARAMETER_TEXT;
+        } else if(PJLinkConstants.UNAVAILABLE_TIME.equals(responseValue)) {
             if (logger.isWarnEnabled()) {
                 logger.warn("Unavailable time: " + new String(command.getValue()));
             }
-            return UNAVAILABLE_TIME_TEXT;
-        } else if(DEVICE_FAILURE.equals(responseValue)) {
+            return PJLinkConstants.UNAVAILABLE_TIME_TEXT;
+        } else if(PJLinkConstants.DEVICE_FAILURE.equals(responseValue)) {
             if (logger.isWarnEnabled()) {
                 logger.warn("Projector/Display failure: " + new String(command.getValue()));
             }
-            return DEVICE_FAILURE_TEXT;
+            return PJLinkConstants.DEVICE_FAILURE_TEXT;
         } else if("-".equals(responseValue)) {
-            return N_A;
+            return PJLinkConstants.N_A;
         }
         return responseValue;
     }
@@ -686,7 +682,7 @@ public class PJLinkCommunicator extends SocketCommunicator implements Monitorabl
         String digest = DigestUtils.md5Hex(String.format("%s%s", authenticationSuffix, password).getBytes());
         byte[] command = String.format("%s%s", digest, new String(data)).getBytes();
         String response = sendCommand(command);
-        if (response.contains(PJLINK_ERRA)) {
+        if (response.contains(PJLinkConstants.PJLINK_ERRA)) {
             throw new FailedLoginException("Unable to authorize, please check device password");
         }
         return response;
@@ -718,11 +714,11 @@ public class PJLinkCommunicator extends SocketCommunicator implements Monitorabl
     private void retrieveClassData(Map<String, String> statistics) throws Exception {
         String classResponse = retrieveResponseValue(sendCommandWithRetry(PJLinkCommand.CLSS_STAT.getValue(), PJLinkCommand.CLSS_STAT.getResponseTemplate()));
         if ("1".equals(classResponse)) {
-            pjLinkClass = CLASS_1;
+            pjLinkClass = PJLinkConstants.PJLinkClass.CLASS_1;
         } else if ("2".equals(classResponse)){
-            pjLinkClass = CLASS_2;
+            pjLinkClass = PJLinkConstants.PJLinkClass.CLASS_2;
         }
-        statistics.put(PJLINK_CLASS_PROPERTY, classResponse);
+        statistics.put(PJLinkConstants.PJLINK_CLASS_PROPERTY, classResponse);
     }
 
     /**
@@ -769,9 +765,9 @@ public class PJLinkCommunicator extends SocketCommunicator implements Monitorabl
      * */
     private void populatePowerData(Map<String, String> statistics, List<AdvancedControllableProperty> controls) throws Exception {
         String powrResponse = sendCommandAndRetrieveValue(PJLinkCommand.POWR_STAT);
-        statistics.put(POWER_PROPERTY, powrResponse);
+        statistics.put(PJLinkConstants.POWER_PROPERTY, powrResponse);
         if (isNumeric(powrResponse)) {
-            controls.add(createSwitch(POWER_PROPERTY, Integer.parseInt(powrResponse)));
+            controls.add(createSwitch(PJLinkConstants.POWER_PROPERTY, Integer.parseInt(powrResponse)));
         }
     }
 
@@ -787,12 +783,12 @@ public class PJLinkCommunicator extends SocketCommunicator implements Monitorabl
         boolean isNumericResponse = isNumeric(freezeResponse);
         if (!StringUtils.isNullOrEmpty(freezeResponse) && validateMonitorableProperty(freezeResponse)) {
             if (isNumericResponse) {
-                statistics.put(FREEZE_PROPERTY, "1".equals(freezeResponse) ? STATUS_ON : STATUS_OFF);
+                statistics.put(PJLinkConstants.FREEZE_PROPERTY, "1".equals(freezeResponse) ? PJLinkConstants.STATUS_ON : PJLinkConstants.STATUS_OFF);
             } else {
-                statistics.put(FREEZE_PROPERTY, freezeResponse);
+                statistics.put(PJLinkConstants.FREEZE_PROPERTY, freezeResponse);
             }
-            if ("1".equals(statistics.get(POWER_PROPERTY)) && isNumericResponse) {
-                controls.add(createSwitch(FREEZE_PROPERTY, Integer.parseInt(freezeResponse)));
+            if ("1".equals(statistics.get(PJLinkConstants.POWER_PROPERTY)) && isNumericResponse) {
+                controls.add(createSwitch(PJLinkConstants.FREEZE_PROPERTY, Integer.parseInt(freezeResponse)));
             }
         }
     }
@@ -804,8 +800,8 @@ public class PJLinkCommunicator extends SocketCommunicator implements Monitorabl
      * @param controls to keep volume controls
      * */
     private void populateVolumeControls(Map<String, String> statistics, List<AdvancedControllableProperty> controls) {
-        generateVolumeControlsWithValidation(statistics, controls, MICROPHONE_VOLUME_UP, MICROPHONE_VOLUME_DOWN);
-        generateVolumeControlsWithValidation(statistics, controls, SPEAKER_VOLUME_UP, SPEAKER_VOLUME_DOWN);
+        generateVolumeControlsWithValidation(statistics, controls, PJLinkConstants.MICROPHONE_VOLUME_UP, PJLinkConstants.MICROPHONE_VOLUME_DOWN);
+        generateVolumeControlsWithValidation(statistics, controls, PJLinkConstants.SPEAKER_VOLUME_UP, PJLinkConstants.SPEAKER_VOLUME_DOWN);
     }
 
     /**
@@ -843,9 +839,9 @@ public class PJLinkCommunicator extends SocketCommunicator implements Monitorabl
             logger.debug("Providing initial controls validation.");
         }
         try {
-            byte[] micVolumeCmd = MVOL_CMD.getValue().clone();
+            byte[] micVolumeCmd = PJLinkCommand.MVOL_CMD.getValue().clone();
             micVolumeCmd[7] = 0x31;
-            validateControllableProperty(sendCommandWithRetry(micVolumeCmd, "MVOL"), MICROPHONE_VOLUME_UP, null, false);
+            validateControllableProperty(sendCommandWithRetry(micVolumeCmd, "MVOL"), PJLinkConstants.MICROPHONE_VOLUME_UP, null, false);
             micVolumeCmd[7] = 0x30;
             sendCommandWithRetry(micVolumeCmd, "MVOL");
         } catch (Exception e) {
@@ -855,9 +851,9 @@ public class PJLinkCommunicator extends SocketCommunicator implements Monitorabl
         }
 
         try {
-            byte[] spVolumeCmd = SVOL_CMD.getValue().clone();
+            byte[] spVolumeCmd = PJLinkCommand.SVOL_CMD.getValue().clone();
             spVolumeCmd[7] = 0x31;
-            validateControllableProperty(sendCommandWithRetry(spVolumeCmd, "SVOL"), SPEAKER_VOLUME_UP, null, false);
+            validateControllableProperty(sendCommandWithRetry(spVolumeCmd, "SVOL"), PJLinkConstants.SPEAKER_VOLUME_UP, null, false);
             spVolumeCmd[7] = 0x30;
             sendCommandWithRetry(spVolumeCmd, "SVOL");
         } catch (Exception e) {
@@ -882,9 +878,9 @@ public class PJLinkCommunicator extends SocketCommunicator implements Monitorabl
         String inptResponse = sendCommandAndRetrieveValue(PJLinkCommand.INPT_STAT);
         if (!StringUtils.isNullOrEmpty(inptResponse) && validateMonitorableProperty(inptResponse)) {
             String dropdownValue = inputOptions.inverse().get(inptResponse);
-            statistics.put(INPUT_PROPERTY, dropdownValue);
-            if ("1".equals(statistics.get(POWER_PROPERTY))) {
-                controls.add(createDropdown(INPUT_PROPERTY, new ArrayList<>(inputOptions.keySet()), dropdownValue));
+            statistics.put(PJLinkConstants.INPUT_PROPERTY, dropdownValue);
+            if ("1".equals(statistics.get(PJLinkConstants.POWER_PROPERTY))) {
+                controls.add(createDropdown(PJLinkConstants.INPUT_PROPERTY, new ArrayList<>(inputOptions.keySet()), dropdownValue));
             }
         }
     }
@@ -919,20 +915,20 @@ public class PJLinkCommunicator extends SocketCommunicator implements Monitorabl
     private void populateAVMuteData(Map<String, String> statistics, List<AdvancedControllableProperty> controls, String avMuteResponse) {
         switch (avMuteResponse) {
             case "30":
-                createAVMuteControl(statistics, controls, AUDIOMUTE_PROPERTY, "0");
-                createAVMuteControl(statistics, controls, VIDEOMUTE_PROPERTY, "0");
+                createAVMuteControl(statistics, controls, PJLinkConstants.AUDIOMUTE_PROPERTY, "0");
+                createAVMuteControl(statistics, controls, PJLinkConstants.VIDEOMUTE_PROPERTY, "0");
                 break;
             case "31":
-                createAVMuteControl(statistics, controls, AUDIOMUTE_PROPERTY, "1");
-                createAVMuteControl(statistics, controls, VIDEOMUTE_PROPERTY, "1");
+                createAVMuteControl(statistics, controls, PJLinkConstants.AUDIOMUTE_PROPERTY, "1");
+                createAVMuteControl(statistics, controls, PJLinkConstants.VIDEOMUTE_PROPERTY, "1");
                 break;
             case "21":
-                createAVMuteControl(statistics, controls, AUDIOMUTE_PROPERTY, "1");
-                createAVMuteControl(statistics, controls, VIDEOMUTE_PROPERTY, "0");
+                createAVMuteControl(statistics, controls, PJLinkConstants.AUDIOMUTE_PROPERTY, "1");
+                createAVMuteControl(statistics, controls, PJLinkConstants.VIDEOMUTE_PROPERTY, "0");
                 break;
             case "11":
-                createAVMuteControl(statistics, controls, AUDIOMUTE_PROPERTY, "0");
-                createAVMuteControl(statistics, controls, VIDEOMUTE_PROPERTY, "1");
+                createAVMuteControl(statistics, controls, PJLinkConstants.AUDIOMUTE_PROPERTY, "0");
+                createAVMuteControl(statistics, controls, PJLinkConstants.VIDEOMUTE_PROPERTY, "1");
                 break;
             default:
                 if (logger.isDebugEnabled()) {
@@ -951,11 +947,11 @@ public class PJLinkCommunicator extends SocketCommunicator implements Monitorabl
     private void createAVMuteControl(Map<String, String> statistics, List<AdvancedControllableProperty> controls, String propertyName, String value) {
         boolean isNumericResponse = isNumeric(value);
         if (isNumericResponse) {
-            statistics.put(propertyName, "1".equals(value) ? STATUS_ON : STATUS_OFF);
+            statistics.put(propertyName, "1".equals(value) ? PJLinkConstants.STATUS_ON : PJLinkConstants.STATUS_OFF);
         } else {
             statistics.put(propertyName, value);
         }
-        if ("1".equals(statistics.get(POWER_PROPERTY)) && isNumericResponse) {
+        if ("1".equals(statistics.get(PJLinkConstants.POWER_PROPERTY)) && isNumericResponse) {
             controls.add(createSwitch(propertyName, Integer.parseInt(value)));
         }
     }
@@ -980,12 +976,12 @@ public class PJLinkCommunicator extends SocketCommunicator implements Monitorabl
         char filterError = errstResponse.charAt(4);
         char otherError = errstResponse.charAt(5);
 
-        statistics.put(ERROR_FAN_PROPERTY, errorStatusString(fanError));
-        statistics.put(ERROR_LAMP_PROPERTY, errorStatusString(lampError));
-        statistics.put(ERROR_TEMPERATURE_PROPERTY, errorStatusString(temperatureError));
-        statistics.put(ERROR_COVER_PROPERTY, errorStatusString(coverOpenError));
-        statistics.put(ERROR_FILTER_PROPERTY, errorStatusString(filterError));
-        statistics.put(ERROR_OTHER_PROPERTY, errorStatusString(otherError));
+        statistics.put(PJLinkConstants.ERROR_FAN_PROPERTY, errorStatusString(fanError));
+        statistics.put(PJLinkConstants.ERROR_LAMP_PROPERTY, errorStatusString(lampError));
+        statistics.put(PJLinkConstants.ERROR_TEMPERATURE_PROPERTY, errorStatusString(temperatureError));
+        statistics.put(PJLinkConstants.ERROR_COVER_PROPERTY, errorStatusString(coverOpenError));
+        statistics.put(PJLinkConstants.ERROR_FILTER_PROPERTY, errorStatusString(filterError));
+        statistics.put(PJLinkConstants.ERROR_OTHER_PROPERTY, errorStatusString(otherError));
     }
 
     /**
@@ -996,13 +992,13 @@ public class PJLinkCommunicator extends SocketCommunicator implements Monitorabl
      * */
     private String errorStatusString(char id) {
         if (id == '0') {
-            return STATUS_OK;
+            return PJLinkConstants.STATUS_OK;
         } else if (id == '1') {
-            return STATUS_WARNING;
+            return PJLinkConstants.STATUS_WARNING;
         } else if (id == '2') {
-            return STATUS_ERROR;
+            return PJLinkConstants.STATUS_ERROR;
         }
-        return N_A;
+        return PJLinkConstants.N_A;
     }
 
     /**
@@ -1025,7 +1021,7 @@ public class PJLinkCommunicator extends SocketCommunicator implements Monitorabl
                 lampIndex++;
                 statistics.put(String.format("Lamp#Lamp%sUsageTime", lampIndex), lampsData[i]);
             } else {
-                statistics.put(String.format("Lamp#Lamp%sStatus", lampIndex), "1".equals(lampsData[i]) ? STATUS_ON : STATUS_OFF);
+                statistics.put(String.format("Lamp#Lamp%sStatus", lampIndex), "1".equals(lampsData[i]) ? PJLinkConstants.STATUS_ON : PJLinkConstants.STATUS_OFF);
             }
         }
 
@@ -1049,7 +1045,7 @@ public class PJLinkCommunicator extends SocketCommunicator implements Monitorabl
      * @return boolean, true if property is valid, false if not valid
      * */
     private boolean validateMonitorableProperty(String commandResponseValue) {
-        if(UNDEFINED_COMMAND.equals(commandResponseValue)) {
+        if(PJLinkConstants.UNDEFINED_COMMAND.equals(commandResponseValue)) {
             return false;
         }
         return true;
@@ -1064,16 +1060,16 @@ public class PJLinkCommunicator extends SocketCommunicator implements Monitorabl
      * */
     private void validateControllableProperty(String commandResponseValue, String name, String value, boolean updateValue) {
         switch(retrieveResponseValue(commandResponseValue)) {
-            case UNDEFINED_COMMAND:
+            case PJLinkConstants.UNDEFINED_COMMAND:
                 if (!unsupportedCommands.contains(name)) {
                     unsupportedCommands.add(name);
                 }
                 throw new IllegalArgumentException("Unsupported control command: " + name);
-            case OUT_OF_PARAMETER:
+            case PJLinkConstants.OUT_OF_PARAMETER:
                 throw new IllegalArgumentException("Missing control command parameter: " + name);
-            case UNAVAILABLE_TIME:
+            case PJLinkConstants.UNAVAILABLE_TIME:
                 throw new IllegalStateException("Unable to send control command due to the device state");
-            case DEVICE_FAILURE:
+            case PJLinkConstants.DEVICE_FAILURE:
                 throw new RuntimeException("Unable to send control command due to the general device failure");
             default:
                 if (logger.isDebugEnabled()) {
@@ -1086,11 +1082,11 @@ public class PJLinkCommunicator extends SocketCommunicator implements Monitorabl
                 advancedControllableProperty.setValue(value);
             });
             localStatistics.getStatistics().put(name, value);
-            if (POWER_PROPERTY.equals(name) && "0".equals(value)) {
+            if (PJLinkConstants.POWER_PROPERTY.equals(name) && "0".equals(value)) {
                 localStatistics.getControllableProperties().removeIf(advancedControllableProperty -> {
                     String propertyName = advancedControllableProperty.getName();
-                    return INPUT_PROPERTY.equals(propertyName) || AUDIOMUTE_PROPERTY.equals(propertyName) ||
-                            VIDEOMUTE_PROPERTY.equals(propertyName) || FREEZE_PROPERTY.equals(propertyName);
+                    return PJLinkConstants.INPUT_PROPERTY.equals(propertyName) || PJLinkConstants.AUDIOMUTE_PROPERTY.equals(propertyName) ||
+                            PJLinkConstants.VIDEOMUTE_PROPERTY.equals(propertyName) || PJLinkConstants.FREEZE_PROPERTY.equals(propertyName);
                 });
             }
         }
