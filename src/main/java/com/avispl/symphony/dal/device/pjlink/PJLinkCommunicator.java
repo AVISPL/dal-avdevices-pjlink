@@ -654,17 +654,17 @@ public class PJLinkCommunicator extends SocketCommunicator implements Monitorabl
             if (logger.isWarnEnabled()) {
                 logger.warn("Out of parameter: " + new String(command.getValue()));
             }
-            return OUT_OF_PARAMETER;
+            return OUT_OF_PARAMETER_TEXT;
         } else if(UNAVAILABLE_TIME.equals(responseValue)) {
             if (logger.isWarnEnabled()) {
                 logger.warn("Unavailable time: " + new String(command.getValue()));
             }
-            return UNAVAILABLE_TIME;
+            return UNAVAILABLE_TIME_TEXT;
         } else if(DEVICE_FAILURE.equals(responseValue)) {
             if (logger.isWarnEnabled()) {
                 logger.warn("Projector/Display failure: " + new String(command.getValue()));
             }
-            return DEVICE_FAILURE;
+            return DEVICE_FAILURE_TEXT;
         } else if("-".equals(responseValue)) {
             return N_A;
         }
@@ -784,9 +784,14 @@ public class PJLinkCommunicator extends SocketCommunicator implements Monitorabl
      * */
     private void populateFreezeData(Map<String, String> statistics, List<AdvancedControllableProperty> controls) throws Exception {
         String freezeResponse = sendCommandAndRetrieveValue(PJLinkCommand.FREZ_STAT);
+        boolean isNumericResponse = isNumeric(freezeResponse);
         if (!StringUtils.isNullOrEmpty(freezeResponse) && validateMonitorableProperty(freezeResponse)) {
-            statistics.put(FREEZE_PROPERTY, "1".equals(freezeResponse) ? STATUS_ON : STATUS_OFF);
-            if ("1".equals(statistics.get(POWER_PROPERTY)) && isNumeric(freezeResponse)) {
+            if (isNumericResponse) {
+                statistics.put(FREEZE_PROPERTY, "1".equals(freezeResponse) ? STATUS_ON : STATUS_OFF);
+            } else {
+                statistics.put(FREEZE_PROPERTY, freezeResponse);
+            }
+            if ("1".equals(statistics.get(POWER_PROPERTY)) && isNumericResponse) {
                 controls.add(createSwitch(FREEZE_PROPERTY, Integer.parseInt(freezeResponse)));
             }
         }
@@ -944,8 +949,13 @@ public class PJLinkCommunicator extends SocketCommunicator implements Monitorabl
      * @param value current value of the property
      * */
     private void createAVMuteControl(Map<String, String> statistics, List<AdvancedControllableProperty> controls, String propertyName, String value) {
-        statistics.put(propertyName, "1".equals(value) ? STATUS_ON : STATUS_OFF);
-        if ("1".equals(statistics.get(POWER_PROPERTY)) && isNumeric(value)) {
+        boolean isNumericResponse = isNumeric(value);
+        if (isNumericResponse) {
+            statistics.put(propertyName, "1".equals(value) ? STATUS_ON : STATUS_OFF);
+        } else {
+            statistics.put(propertyName, value);
+        }
+        if ("1".equals(statistics.get(POWER_PROPERTY)) && isNumericResponse) {
             controls.add(createSwitch(propertyName, Integer.parseInt(value)));
         }
     }

@@ -9,6 +9,7 @@ package com.avispl.symphony.dal.device.pjlink;
  * @author Maksym.Rossiytsev/AVISPL Team
  */
 public class PJLinkConstants {
+    public static final String PJLINK_0 = "PJLINK 0";
     public static final String PJLINK_1 = "PJLINK 1";
     public static final String PJLINK_ERRA = "PJLINK ERRA";
     public static final String UNDEFINED_COMMAND = "ERR1";
@@ -16,6 +17,10 @@ public class PJLinkConstants {
     public static final String UNAVAILABLE_TIME = "ERR3";
     public static final String DEVICE_FAILURE = "ERR4";
 
+    public static final String UNDEFINED_COMMAND_TEXT = "ERR_UNSUPPORTED";
+    public static final String OUT_OF_PARAMETER_TEXT = "ERR_PARAMETER";
+    public static final String UNAVAILABLE_TIME_TEXT = "ERR_DEVICE_STATE";
+    public static final String DEVICE_FAILURE_TEXT = "ERR_DEVICE_FAILURE";
     public static final String N_A = "N/A";
 
     public static final String STATUS_OK = "OK";

@@ -31,9 +31,9 @@ public class PJLinkCommunicatorDeviceTest {
     public void setUp() throws Exception {
         communicator = new PJLinkCommunicator();
         communicator.setPort(4352);
-        //communicator.setHost("172.31.254.173"); // NEC Projector
+        communicator.setHost("172.31.254.173"); // NEC Projector
         communicator.setPassword("1234");
-        communicator.setHost("172.31.254.236"); // NEC Display
+        //communicator.setHost("172.31.254.236"); // NEC Display
     }
 
     @Test
