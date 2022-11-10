@@ -9,7 +9,6 @@ import com.avispl.symphony.api.dal.dto.monitor.Statistics;
 import org.junit.jupiter.api.Assertions;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.jupiter.api.Tag;
 import org.springframework.util.Assert;
 
 import javax.security.auth.login.FailedLoginException;
@@ -23,7 +22,6 @@ import static com.avispl.symphony.dal.device.pjlink.PJLinkConstants.*;
  *
  * @author Maksym.Rossiytsev/AVISPL Team
  * */
-@Tag("Device")
 public class PJLinkCommunicatorDeviceTest {
     PJLinkCommunicator communicator;
 
