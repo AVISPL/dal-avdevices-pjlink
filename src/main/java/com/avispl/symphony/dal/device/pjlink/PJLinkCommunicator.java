@@ -148,7 +148,7 @@ public class PJLinkCommunicator extends SocketCommunicator implements Monitorabl
     /**
      * A default delay to apply in between of all the commands performed by the adapter.
      * */
-    private long commandsCooldownDelay = 500;
+    private long commandsCooldownDelay = 200;
 
     /**
      * If control commands should be delayed until monitoring cycle is finished
