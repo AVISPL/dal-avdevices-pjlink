@@ -7,10 +7,11 @@ import com.avispl.symphony.api.dal.dto.control.ControllableProperty;
 import com.avispl.symphony.api.dal.dto.monitor.ExtendedStatistics;
 import com.avispl.symphony.api.dal.dto.monitor.Statistics;
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.Before;
+import org.junit.Test;
 import org.springframework.util.Assert;
 
+import javax.security.auth.login.FailedLoginException;
 import java.util.List;
 import java.util.Map;
 
@@ -24,7 +25,7 @@ import static com.avispl.symphony.dal.device.pjlink.PJLinkConstants.*;
 public class PJLinkCommunicatorDeviceTest {
     PJLinkCommunicator communicator;
 
-    @BeforeEach
+    @Before
     public void setUp() throws Exception {
         communicator = new PJLinkCommunicator();
         communicator.setPort(4352);
@@ -49,24 +50,33 @@ public class PJLinkCommunicatorDeviceTest {
         Assertions.assertEquals("0", statisticsMap.get(VIDEOMUTE_PROPERTY));
         Assertions.assertEquals("0", statisticsMap.get(AUDIOMUTE_PROPERTY));
     }
+    @Test(expected = FailedLoginException.class)
+    public void testGetMultipleStatisticsAuthFail() throws Exception {
+        communicator.setConnectionKeepAliveTimeout(20000);
+        communicator.setPassword("");
+        communicator.init();
+        List<Statistics> statisticsList = communicator.getMultipleStatistics();
+        ExtendedStatistics statistics = (ExtendedStatistics)statisticsList.get(0);
+        statistics.getStatistics();
+    }
 
     @Test
     public void testGetMultipleStatisticsWithPauseAndKeepAlive() throws Exception {
         communicator.setConnectionKeepAliveTimeout(20000);
         communicator.init();
         List<Statistics> statisticsList = communicator.getMultipleStatistics();
-//        System.out.println("First idle period");
-//        Thread.sleep(60000);
-//        statisticsList = communicator.getMultipleStatistics();
-//        System.out.println("Second idle period");
-//        Thread.sleep(60000);
-//        System.out.println("Third idle period");
-//        Thread.sleep(60000);
-//        System.out.println("Fourth idle period");
-//        Thread.sleep(60000);
-//        System.out.println("Fifth idle period");
-//        Thread.sleep(60000);
-//        statisticsList = communicator.getMultipleStatistics();
+        System.out.println("First idle period");
+        Thread.sleep(60000);
+        statisticsList = communicator.getMultipleStatistics();
+        System.out.println("Second idle period");
+        Thread.sleep(60000);
+        System.out.println("Third idle period");
+        Thread.sleep(60000);
+        System.out.println("Fourth idle period");
+        Thread.sleep(60000);
+        System.out.println("Fifth idle period");
+        Thread.sleep(60000);
+        statisticsList = communicator.getMultipleStatistics();
         ExtendedStatistics statistics = (ExtendedStatistics)statisticsList.get(0);
         Map<String, String> statisticsMap = statistics.getStatistics();
 
@@ -106,13 +116,13 @@ public class PJLinkCommunicatorDeviceTest {
 
         ControllableProperty controllableProperty = new ControllableProperty();
         controllableProperty.setProperty(PJLinkConstants.INPUT_PROPERTY);
-        controllableProperty.setValue("OPTION");
+        controllableProperty.setValue("HDMI1");
         communicator.controlProperty(controllableProperty);
         statisticsList = communicator.getMultipleStatistics();
 
         ExtendedStatistics statistics = (ExtendedStatistics)statisticsList.get(0);
         Map<String, String> statisticsMap = statistics.getStatistics();
-        Assertions.assertEquals("OPTION", statisticsMap.get(PJLinkConstants.INPUT_PROPERTY));
+        Assertions.assertEquals("HDMI1", statisticsMap.get(PJLinkConstants.INPUT_PROPERTY));
     }
 
     @Test

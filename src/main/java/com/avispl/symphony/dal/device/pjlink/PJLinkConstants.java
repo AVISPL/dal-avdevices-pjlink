@@ -12,6 +12,17 @@ public class PJLinkConstants {
     public static final String PJLINK_0 = "PJLINK 0";
     public static final String PJLINK_1 = "PJLINK 1";
     public static final String PJLINK_ERRA = "PJLINK ERRA";
+    public static final String UNDEFINED_COMMAND = "ERR1";
+    public static final String OUT_OF_PARAMETER = "ERR2";
+    public static final String UNAVAILABLE_TIME = "ERR3";
+    public static final String DEVICE_FAILURE = "ERR4";
+    public static final String N_A = "N/A";
+
+    public static final String STATUS_OK = "OK";
+    public static final String STATUS_WARNING = "WARNING";
+    public static final String STATUS_ERROR = "ERROR";
+    public static final String STATUS_OFF = "OFF";
+    public static final String STATUS_ON = "ON";
 
     public static final String POWER_PROPERTY = "System#Power";
     public static final String FREEZE_PROPERTY = "System#Freeze";
