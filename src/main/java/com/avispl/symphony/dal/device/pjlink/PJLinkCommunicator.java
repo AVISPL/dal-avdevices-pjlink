@@ -207,10 +207,9 @@ public class PJLinkCommunicator extends SocketCommunicator implements Monitorabl
     private long inputOptionsRetrievalDelay = 1000 * 60 * 30;
 
     /**
-     * Indicator to keep track of the authentication status. Authentication command is required once per
-     * communication session. Once authenticated - this property changes to false.
+     * Indicator for the necessity of providing the initial commands validation for commands
+     * that do not have read operations (such as mic and speaker volume change)
      * */
-    private boolean authenticationRequired = false;
     private boolean initialControlsValidationFinished = false;
 
     private static final int CONTROL_OPERATION_COOLDOWN_MS = 5000;
@@ -581,13 +580,10 @@ public class PJLinkCommunicator extends SocketCommunicator implements Monitorabl
                 getConnectionStatus().getConnectionState() == ConnectionState.Unknown) && data.length > 0) {
             String response =  sendCommandWithRetry(PJLinkCommand.BLANK.getValue(), "PJLINK");
             if (response.startsWith(PJLinkConstants.PJLINK_1) || response.startsWith(PJLINK_ERRA)) {
-                authenticationRequired = true;
                 if (response.startsWith(PJLinkConstants.PJLINK_1)) {
                     authenticationSuffix = response.split("1")[1].trim();
                 }
                 return authorize(data);
-            } else if (response.startsWith(PJLinkConstants.PJLINK_0)) {
-                authenticationRequired = false;
             }
         }
         return new String(this.send(data));
@@ -642,7 +638,7 @@ public class PJLinkCommunicator extends SocketCommunicator implements Monitorabl
             if (logger.isDebugEnabled()) {
                 logger.debug(String.format("Command %s is not supported, skipping", commandName));
             }
-            return UNDEFINED_COMMAND_TEXT;
+            return UNDEFINED_COMMAND;
         }
         String responseValue = retrieveResponseValue(sendCommandWithRetry(command.getValue(), command.getResponseTemplate())).trim();
 
@@ -653,22 +649,22 @@ public class PJLinkCommunicator extends SocketCommunicator implements Monitorabl
             if (logger.isWarnEnabled()) {
                 logger.warn("Undefined Command: " + new String(command.getValue()));
             }
-            return UNDEFINED_COMMAND_TEXT;
+            return UNDEFINED_COMMAND;
         } else if(OUT_OF_PARAMETER.equals(responseValue)) {
             if (logger.isWarnEnabled()) {
                 logger.warn("Out of parameter: " + new String(command.getValue()));
             }
-            return OUT_OF_PARAMETER_TEXT;
+            return OUT_OF_PARAMETER;
         } else if(UNAVAILABLE_TIME.equals(responseValue)) {
             if (logger.isWarnEnabled()) {
                 logger.warn("Unavailable time: " + new String(command.getValue()));
             }
-            return UNAVAILABLE_TIME_TEXT;
+            return UNAVAILABLE_TIME;
         } else if(DEVICE_FAILURE.equals(responseValue)) {
             if (logger.isWarnEnabled()) {
                 logger.warn("Projector/Display failure: " + new String(command.getValue()));
             }
-            return DEVICE_FAILURE_TEXT;
+            return DEVICE_FAILURE;
         } else if("-".equals(responseValue)) {
             return N_A;
         }
@@ -691,10 +687,7 @@ public class PJLinkCommunicator extends SocketCommunicator implements Monitorabl
         byte[] command = String.format("%s%s", digest, new String(data)).getBytes();
         String response = sendCommand(command);
         if (response.contains(PJLINK_ERRA)) {
-            authenticationRequired = true;
             throw new FailedLoginException("Unable to authorize, please check device password");
-        } else {
-            authenticationRequired = false;
         }
         return response;
     }
