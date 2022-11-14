@@ -1079,10 +1079,7 @@ public class PJLinkCommunicator extends SocketCommunicator implements Monitorabl
      * @return boolean, true if property is valid, false if not valid
      * */
     private boolean validateMonitorableProperty(String commandResponseValue) {
-        if(PJLinkConstants.UNDEFINED_COMMAND.equals(commandResponseValue)) {
-            return false;
-        }
-        return true;
+        return !PJLinkConstants.UNDEFINED_COMMAND.equals(commandResponseValue);
     }
     /**
      * Update local statistics state, to provide when emergency delivery cycle is supposed to be skipped
