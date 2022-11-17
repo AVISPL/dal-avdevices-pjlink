@@ -151,11 +151,6 @@ public class PJLinkCommunicator extends SocketCommunicator implements Monitorabl
     private long commandsCooldownDelay = 200;
 
     /**
-     * If control commands should be delayed until monitoring cycle is finished
-     * */
-    private boolean delayControlCommands;
-
-    /**
      * Whenever a PJLink requires authentication - it will reply with a random number, upon connection.
      * This is the random number to use withing the next command issued after the connection
      * */
@@ -269,24 +264,6 @@ public class PJLinkCommunicator extends SocketCommunicator implements Monitorabl
      */
     public void setConnectionKeepAliveTimeout(long connectionKeepAliveTimeout) {
         this.connectionKeepAliveTimeout = connectionKeepAliveTimeout;
-    }
-
-    /**
-     * Retrieves {@link #delayControlCommands}
-     *
-     * @return value of {@link #delayControlCommands}
-     */
-    public boolean isDelayControlCommands() {
-        return delayControlCommands;
-    }
-
-    /**
-     * Sets {@link #delayControlCommands} value
-     *
-     * @param delayControlCommands new value of {@link #delayControlCommands}
-     */
-    public void setDelayControlCommands(boolean delayControlCommands) {
-        this.delayControlCommands = delayControlCommands;
     }
 
     @Override
@@ -1097,11 +1074,13 @@ public class PJLinkCommunicator extends SocketCommunicator implements Monitorabl
                 }
                 throw new IllegalArgumentException("Unsupported control command: " + name);
             case PJLinkConstants.OUT_OF_PARAMETER:
-                throw new IllegalArgumentException("Missing control command parameter: " + name);
+                throw new IllegalArgumentException("Missing or incorrect control command parameter: " + name);
             case PJLinkConstants.UNAVAILABLE_TIME:
                 throw new IllegalStateException("Unable to send control command due to the device state");
             case PJLinkConstants.DEVICE_FAILURE:
                 throw new RuntimeException("Unable to send control command due to the general device failure");
+            case PJLinkConstants.PJLINK_ERRA:
+                throw new RuntimeException("Unable to execute the command. Please check device credentials");
             default:
                 if (logger.isDebugEnabled()) {
                     logger.debug("Finished processing control command: " + name);
