@@ -473,6 +473,8 @@ public class PJLinkCommunicator extends SocketCommunicator implements Monitorabl
                 if (logger.isDebugEnabled()) {
                     logger.debug("Finished collecting Class 2 PJLink statistics");
                 }
+            } else {
+                throw new IllegalStateException("Unsupported PJLink Class value: " + pjLinkClass);
             }
             statistics.put(PJLinkConstants.METADATA_ADAPTER_VERSION_PROPERTY, adapterProperties.getProperty("adapter.version"));
             statistics.put(PJLinkConstants.METADATA_ADAPTER_BUILD_DATE_PROPERTY, adapterProperties.getProperty("adapter.build.date"));
