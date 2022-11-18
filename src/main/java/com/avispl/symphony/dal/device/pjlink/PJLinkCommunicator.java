@@ -566,7 +566,7 @@ public class PJLinkCommunicator extends SocketCommunicator implements Monitorabl
                 }
                 response = authorize(data);
                 if (response.contains(PJLinkConstants.PJLINK_ERRA)) {
-                    throw new FailedLoginException("Unable to authorize, please check device password");
+                    processAuthorizationFailure();
                 }
                 return response;
             }
@@ -672,9 +672,20 @@ public class PJLinkCommunicator extends SocketCommunicator implements Monitorabl
         byte[] command = String.format("%s%s", digest, new String(data)).getBytes();
         String response = sendCommand(command);
         if (response.contains(PJLinkConstants.PJLINK_ERRA)) {
-            throw new FailedLoginException("Unable to authorize, please check device password");
+            processAuthorizationFailure();
         }
         return response;
+    }
+
+    /**
+     * Disconnect the communicator and throw FailedLoginException.
+     *
+     * @throws Exception when disconnect is not possible for some reason
+     * @throws FailedLoginException by design, indicating that the login has failed
+     * */
+    private void processAuthorizationFailure() throws Exception {
+        disconnect();
+        throw new FailedLoginException("Unable to authorize, please check device password");
     }
 
     /**
@@ -706,6 +717,8 @@ public class PJLinkCommunicator extends SocketCommunicator implements Monitorabl
             pjLinkClass = PJLinkConstants.PJLinkClass.CLASS_1;
         } else if ("2".equals(classResponse)){
             pjLinkClass = PJLinkConstants.PJLinkClass.CLASS_2;
+        } else if (classResponse.contains(PJLinkConstants.PJLINK_ERRA)) {
+            processAuthorizationFailure();
         }
         statistics.put(PJLinkConstants.PJLINK_CLASS_PROPERTY, classResponse);
     }
