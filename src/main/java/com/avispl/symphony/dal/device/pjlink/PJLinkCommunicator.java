@@ -564,7 +564,11 @@ public class PJLinkCommunicator extends SocketCommunicator implements Monitorabl
                 if (response.startsWith(PJLinkConstants.PJLINK_1)) {
                     authenticationSuffix = response.split("1")[1].trim();
                 }
-                return authorize(data);
+                response = authorize(data);
+                if (response.contains(PJLinkConstants.PJLINK_ERRA)) {
+                    throw new FailedLoginException("Unable to authorize, please check device password");
+                }
+                return response;
             }
         }
         return new String(this.send(data));
