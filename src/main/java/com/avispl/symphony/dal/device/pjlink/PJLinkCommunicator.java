@@ -11,6 +11,7 @@ import com.avispl.symphony.api.dal.dto.monitor.ExtendedStatistics;
 import com.avispl.symphony.api.dal.dto.monitor.Statistics;
 import com.avispl.symphony.api.dal.monitor.Monitorable;
 import com.avispl.symphony.dal.communicator.SocketCommunicator;
+import com.avispl.symphony.dal.device.pjlink.error.PJLinkDeviceFailureException;
 import com.avispl.symphony.dal.util.StringUtils;
 import com.google.common.collect.HashBiMap;
 import org.apache.commons.codec.digest.DigestUtils;
@@ -56,7 +57,7 @@ import static com.avispl.symphony.dal.util.PropertyUtils.normalizeUptime;
  * - Microphone Volume Control
  * - Freeze Status Monitoring and Control
  *
- * @author Maksym.Rossiytsev/AVISPL Team
+ * @author Maksym.Rossiitsev/AVISPL Team
  */
 public class PJLinkCommunicator extends SocketCommunicator implements Monitorable, Controller {
     /**
@@ -148,12 +149,7 @@ public class PJLinkCommunicator extends SocketCommunicator implements Monitorabl
     /**
      * A default delay to apply in between of all the commands performed by the adapter.
      * */
-    private long commandsCooldownDelay = 200;
-
-    /**
-     * If control commands should be delayed until monitoring cycle is finished
-     * */
-    private boolean delayControlCommands;
+    private long commandsMinInterval = 200;
 
     /**
      * Whenever a PJLink requires authentication - it will reply with a random number, upon connection.
@@ -236,21 +232,21 @@ public class PJLinkCommunicator extends SocketCommunicator implements Monitorabl
     }
 
     /**
-     * Retrieves {@link #commandsCooldownDelay}
+     * Retrieves {@link #commandsMinInterval}
      *
-     * @return value of {@link #commandsCooldownDelay}
+     * @return value of {@link #commandsMinInterval}
      */
-    public long getCommandsCooldownDelay() {
-        return commandsCooldownDelay;
+    public long getCommandsMinInterval() {
+        return commandsMinInterval;
     }
 
     /**
-     * Sets {@link #commandsCooldownDelay} value. Must not be less than 200ms
+     * Sets {@link #commandsMinInterval} value. Must not be less than 200ms
      *
-     * @param commandsCooldownDelay new value of {@link #commandsCooldownDelay}
+     * @param commandsMinInterval new value of {@link #commandsMinInterval}
      */
-    public void setCommandsCooldownDelay(long commandsCooldownDelay) {
-        this.commandsCooldownDelay = Math.max(200, commandsCooldownDelay);
+    public void setCommandsMinInterval(long commandsMinInterval) {
+        this.commandsMinInterval = Math.max(200, commandsMinInterval);
     }
 
     /**
@@ -269,24 +265,6 @@ public class PJLinkCommunicator extends SocketCommunicator implements Monitorabl
      */
     public void setConnectionKeepAliveTimeout(long connectionKeepAliveTimeout) {
         this.connectionKeepAliveTimeout = connectionKeepAliveTimeout;
-    }
-
-    /**
-     * Retrieves {@link #delayControlCommands}
-     *
-     * @return value of {@link #delayControlCommands}
-     */
-    public boolean isDelayControlCommands() {
-        return delayControlCommands;
-    }
-
-    /**
-     * Sets {@link #delayControlCommands} value
-     *
-     * @param delayControlCommands new value of {@link #delayControlCommands}
-     */
-    public void setDelayControlCommands(boolean delayControlCommands) {
-        this.delayControlCommands = delayControlCommands;
     }
 
     @Override
@@ -496,6 +474,8 @@ public class PJLinkCommunicator extends SocketCommunicator implements Monitorabl
                 if (logger.isDebugEnabled()) {
                     logger.debug("Finished collecting Class 2 PJLink statistics");
                 }
+            } else {
+                throw new IllegalStateException("Unsupported PJLink Class value: " + pjLinkClass);
             }
             statistics.put(PJLinkConstants.METADATA_ADAPTER_VERSION_PROPERTY, adapterProperties.getProperty("adapter.version"));
             statistics.put(PJLinkConstants.METADATA_ADAPTER_BUILD_DATE_PROPERTY, adapterProperties.getProperty("adapter.build.date"));
@@ -536,8 +516,8 @@ public class PJLinkCommunicator extends SocketCommunicator implements Monitorabl
         tcpCommandsLock.lock();
         byte[] response;
         try {
-            if (System.currentTimeMillis() - lastCommandTimestamp < commandsCooldownDelay) {
-                Thread.sleep(commandsCooldownDelay);
+            if (System.currentTimeMillis() - lastCommandTimestamp < commandsMinInterval) {
+                Thread.sleep(commandsMinInterval);
             }
             if (logger.isTraceEnabled()) {
                 logger.trace("Sending the PJLink command: " + PJLinkCommand.findByByteSequence(data));
@@ -585,7 +565,11 @@ public class PJLinkCommunicator extends SocketCommunicator implements Monitorabl
                 if (response.startsWith(PJLinkConstants.PJLINK_1)) {
                     authenticationSuffix = response.split("1")[1].trim();
                 }
-                return authorize(data);
+                response = authorize(data);
+                if (response.contains(PJLinkConstants.PJLINK_ERRA)) {
+                    processAuthorizationFailure();
+                }
+                return response;
             }
         }
         return new String(this.send(data));
@@ -689,9 +673,20 @@ public class PJLinkCommunicator extends SocketCommunicator implements Monitorabl
         byte[] command = String.format("%s%s", digest, new String(data)).getBytes();
         String response = sendCommand(command);
         if (response.contains(PJLinkConstants.PJLINK_ERRA)) {
-            throw new FailedLoginException("Unable to authorize, please check device password");
+            processAuthorizationFailure();
         }
         return response;
+    }
+
+    /**
+     * Disconnect the communicator and throw FailedLoginException.
+     *
+     * @throws Exception when disconnect is not possible for some reason
+     * @throws FailedLoginException by design, indicating that the login has failed
+     * */
+    private void processAuthorizationFailure() throws Exception {
+        disconnect();
+        throw new FailedLoginException("Unable to authorize, please check device password");
     }
 
     /**
@@ -723,6 +718,8 @@ public class PJLinkCommunicator extends SocketCommunicator implements Monitorabl
             pjLinkClass = PJLinkConstants.PJLinkClass.CLASS_1;
         } else if ("2".equals(classResponse)){
             pjLinkClass = PJLinkConstants.PJLinkClass.CLASS_2;
+        } else if (classResponse.contains(PJLinkConstants.PJLINK_ERRA)) {
+            processAuthorizationFailure();
         }
         statistics.put(PJLinkConstants.PJLINK_CLASS_PROPERTY, classResponse);
     }
@@ -1053,9 +1050,9 @@ public class PJLinkCommunicator extends SocketCommunicator implements Monitorabl
         for (int i = 0; i < lampsData.length; i++) {
             if (i % 2 == 0) {
                 lampIndex++;
-                statistics.put(String.format("Lamp#Lamp%sUsageTime", lampIndex), lampsData[i]);
+                statistics.put(String.format(PJLinkConstants.LAMP_USAGE_PROPERTY, lampIndex), lampsData[i]);
             } else {
-                statistics.put(String.format("Lamp#Lamp%sStatus", lampIndex), "1".equals(lampsData[i]) ? PJLinkConstants.STATUS_ON : PJLinkConstants.STATUS_OFF);
+                statistics.put(String.format(PJLinkConstants.LAMP_STATUS_PROPERTY, lampIndex), "1".equals(lampsData[i]) ? PJLinkConstants.STATUS_ON : PJLinkConstants.STATUS_OFF);
             }
         }
 
@@ -1089,7 +1086,7 @@ public class PJLinkCommunicator extends SocketCommunicator implements Monitorabl
      * @param commandResponseValue command response
      * @param updateValue for whether cached controllable property should be updated or not
      * */
-    private void validateControllableProperty(String commandResponseValue, String name, String value, boolean updateValue) {
+    private void validateControllableProperty(String commandResponseValue, String name, String value, boolean updateValue) throws FailedLoginException {
         switch(retrieveResponseValue(commandResponseValue)) {
             case PJLinkConstants.UNDEFINED_COMMAND:
                 if (!unsupportedCommands.contains(name)) {
@@ -1097,11 +1094,13 @@ public class PJLinkCommunicator extends SocketCommunicator implements Monitorabl
                 }
                 throw new IllegalArgumentException("Unsupported control command: " + name);
             case PJLinkConstants.OUT_OF_PARAMETER:
-                throw new IllegalArgumentException("Missing control command parameter: " + name);
+                throw new IllegalArgumentException("Missing or incorrect control command parameter: " + name);
             case PJLinkConstants.UNAVAILABLE_TIME:
                 throw new IllegalStateException("Unable to send control command due to the device state");
             case PJLinkConstants.DEVICE_FAILURE:
-                throw new RuntimeException("Unable to send control command due to the general device failure");
+                throw new PJLinkDeviceFailureException("Unable to send control command due to the general device failure");
+            case PJLinkConstants.PJLINK_ERRA:
+                throw new FailedLoginException("Unable to execute the command. Please check device credentials");
             default:
                 if (logger.isDebugEnabled()) {
                     logger.debug("Finished processing control command: " + name);
