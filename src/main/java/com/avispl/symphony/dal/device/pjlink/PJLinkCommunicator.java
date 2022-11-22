@@ -148,7 +148,7 @@ public class PJLinkCommunicator extends SocketCommunicator implements Monitorabl
     /**
      * A default delay to apply in between of all the commands performed by the adapter.
      * */
-    private long commandsCooldownDelay = 200;
+    private long commandsMinInterval = 200;
 
     /**
      * Whenever a PJLink requires authentication - it will reply with a random number, upon connection.
@@ -231,21 +231,21 @@ public class PJLinkCommunicator extends SocketCommunicator implements Monitorabl
     }
 
     /**
-     * Retrieves {@link #commandsCooldownDelay}
+     * Retrieves {@link #commandsMinInterval}
      *
-     * @return value of {@link #commandsCooldownDelay}
+     * @return value of {@link #commandsMinInterval}
      */
-    public long getCommandsCooldownDelay() {
-        return commandsCooldownDelay;
+    public long getCommandsMinInterval() {
+        return commandsMinInterval;
     }
 
     /**
-     * Sets {@link #commandsCooldownDelay} value. Must not be less than 200ms
+     * Sets {@link #commandsMinInterval} value. Must not be less than 200ms
      *
-     * @param commandsCooldownDelay new value of {@link #commandsCooldownDelay}
+     * @param commandsMinInterval new value of {@link #commandsMinInterval}
      */
-    public void setCommandsCooldownDelay(long commandsCooldownDelay) {
-        this.commandsCooldownDelay = Math.max(200, commandsCooldownDelay);
+    public void setCommandsMinInterval(long commandsMinInterval) {
+        this.commandsMinInterval = Math.max(200, commandsMinInterval);
     }
 
     /**
@@ -515,8 +515,8 @@ public class PJLinkCommunicator extends SocketCommunicator implements Monitorabl
         tcpCommandsLock.lock();
         byte[] response;
         try {
-            if (System.currentTimeMillis() - lastCommandTimestamp < commandsCooldownDelay) {
-                Thread.sleep(commandsCooldownDelay);
+            if (System.currentTimeMillis() - lastCommandTimestamp < commandsMinInterval) {
+                Thread.sleep(commandsMinInterval);
             }
             if (logger.isTraceEnabled()) {
                 logger.trace("Sending the PJLink command: " + PJLinkCommand.findByByteSequence(data));
