@@ -1049,9 +1049,9 @@ public class PJLinkCommunicator extends SocketCommunicator implements Monitorabl
         for (int i = 0; i < lampsData.length; i++) {
             if (i % 2 == 0) {
                 lampIndex++;
-                statistics.put(String.format("Lamp#Lamp%sUsageTime", lampIndex), lampsData[i]);
+                statistics.put(String.format(PJLinkConstants.LAMP_USAGE_PROPERTY, lampIndex), lampsData[i]);
             } else {
-                statistics.put(String.format("Lamp#Lamp%sStatus", lampIndex), "1".equals(lampsData[i]) ? PJLinkConstants.STATUS_ON : PJLinkConstants.STATUS_OFF);
+                statistics.put(String.format(PJLinkConstants.LAMP_STATUS_PROPERTY, lampIndex), "1".equals(lampsData[i]) ? PJLinkConstants.STATUS_ON : PJLinkConstants.STATUS_OFF);
             }
         }
 

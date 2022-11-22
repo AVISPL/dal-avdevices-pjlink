@@ -45,7 +45,9 @@ public class PJLinkConstants {
     public static final String DEVICE_DETAILS_PROPERTY = "DeviceDetails";
     public static final String SERIAL_NUMBER_PROPERTY = "SerialNumber";
     public static final String SOFTWARE_VERSION_PROPERTY = "SoftwareVersion";
-    public static final String FILTER_USAGE_PROPERTY = "System#FilterUsageTime";
+    public static final String FILTER_USAGE_PROPERTY = "System#FilterUsageTime(hours)";
+    public static final String LAMP_USAGE_PROPERTY = "Lamp#Lamp%sUsageTime(hours)";
+    public static final String LAMP_STATUS_PROPERTY = "Lamp#Lamp%sStatus";
     public static final String FILTER_REPLACEMENT_PROPERTY = "System#FilterReplacementModelNumber";
     public static final String LAMP_REPLACEMENT_PROPERTY = "Lamp#LampReplacementModelNumber";
     public static final String RECOMMENDED_RESOLUTION_PROPERTY = "System#RecommendedResolution";
