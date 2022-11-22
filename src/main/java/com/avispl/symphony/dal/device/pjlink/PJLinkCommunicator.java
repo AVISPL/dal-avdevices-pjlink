@@ -1085,7 +1085,7 @@ public class PJLinkCommunicator extends SocketCommunicator implements Monitorabl
      * @param commandResponseValue command response
      * @param updateValue for whether cached controllable property should be updated or not
      * */
-    private void validateControllableProperty(String commandResponseValue, String name, String value, boolean updateValue) {
+    private void validateControllableProperty(String commandResponseValue, String name, String value, boolean updateValue) throws FailedLoginException {
         switch(retrieveResponseValue(commandResponseValue)) {
             case PJLinkConstants.UNDEFINED_COMMAND:
                 if (!unsupportedCommands.contains(name)) {
@@ -1099,7 +1099,7 @@ public class PJLinkCommunicator extends SocketCommunicator implements Monitorabl
             case PJLinkConstants.DEVICE_FAILURE:
                 throw new RuntimeException("Unable to send control command due to the general device failure");
             case PJLinkConstants.PJLINK_ERRA:
-                throw new RuntimeException("Unable to execute the command. Please check device credentials");
+                throw new FailedLoginException("Unable to execute the command. Please check device credentials");
             default:
                 if (logger.isDebugEnabled()) {
                     logger.debug("Finished processing control command: " + name);
