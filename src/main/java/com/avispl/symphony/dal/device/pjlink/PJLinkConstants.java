@@ -6,7 +6,7 @@ package com.avispl.symphony.dal.device.pjlink;
 /**
  * PJLink adapter constants - Property names, fixed responses etc.
  *
- * @author Maksym.Rossiytsev/AVISPL Team
+ * @author Maksym.Rossiitsev/AVISPL Team
  */
 public class PJLinkConstants {
     public static final String PJLINK_0 = "PJLINK 0";
