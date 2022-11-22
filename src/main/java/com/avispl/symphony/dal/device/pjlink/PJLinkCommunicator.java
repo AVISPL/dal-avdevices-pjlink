@@ -11,6 +11,7 @@ import com.avispl.symphony.api.dal.dto.monitor.ExtendedStatistics;
 import com.avispl.symphony.api.dal.dto.monitor.Statistics;
 import com.avispl.symphony.api.dal.monitor.Monitorable;
 import com.avispl.symphony.dal.communicator.SocketCommunicator;
+import com.avispl.symphony.dal.device.pjlink.error.PJLinkDeviceFailureException;
 import com.avispl.symphony.dal.util.StringUtils;
 import com.google.common.collect.HashBiMap;
 import org.apache.commons.codec.digest.DigestUtils;
@@ -56,7 +57,7 @@ import static com.avispl.symphony.dal.util.PropertyUtils.normalizeUptime;
  * - Microphone Volume Control
  * - Freeze Status Monitoring and Control
  *
- * @author Maksym.Rossiytsev/AVISPL Team
+ * @author Maksym.Rossiitsev/AVISPL Team
  */
 public class PJLinkCommunicator extends SocketCommunicator implements Monitorable, Controller {
     /**
@@ -1097,7 +1098,7 @@ public class PJLinkCommunicator extends SocketCommunicator implements Monitorabl
             case PJLinkConstants.UNAVAILABLE_TIME:
                 throw new IllegalStateException("Unable to send control command due to the device state");
             case PJLinkConstants.DEVICE_FAILURE:
-                throw new RuntimeException("Unable to send control command due to the general device failure");
+                throw new PJLinkDeviceFailureException("Unable to send control command due to the general device failure");
             case PJLinkConstants.PJLINK_ERRA:
                 throw new FailedLoginException("Unable to execute the command. Please check device credentials");
             default:
