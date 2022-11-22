@@ -17,7 +17,7 @@ import java.util.Optional;
  * {@link #MVOL_CMD}: 2nd to last byte - 0 to decrease speaker volume by 1, 1 to increase by 1
  * {@link #FREZ_CMD}: 2nd to last byte - 1 to freeze the screen, 0 to cancel freeze
  *
- * @author Maksym.Rossiytsev/AVISPL Team
+ * @author Maksym.Rossiitsev/AVISPL Team
  */
 public enum PJLinkCommand {
     // Class 1 properties
